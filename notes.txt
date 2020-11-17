@@ -1,0 +1,82 @@
+sqlite3 db/election.db
+What do you think the db/ prefix is for?
+
+Because the terminal is currently located at the root directory of the project, we must add the db/ prefix to place the new file in the db folder. Without this instruction, the file would be generated in the root directory.
+
+Notice that the prompt in the terminal has changed. It will now look like the following image:
+
+.database
+This will display the absolute path to the connected database. Notice the period character (.) in the .database command. All of SQLite's internal commands begin with a period, to distinguish them from SQL queries. You can see all of them by typing .help.
+
+Another useful dot command is .quit, which quits SQLite. Type it now to return to your terminal session.
+
+Now you can use SQLite's .open command to open election.db, as shown in the following code block:
+
+.open db/election.db
+Excellent. You've successfully created the first database. It doesn't contain any data yet, but it will soon! 
+The big takeaways are that the election.db file will store the tables we're about to create and that the SQLite CLI connects to this database. 
+Now it's time to create a table!
+
+We've decided to start with the candidates table, which will include first name, last name, and a Boolean value to track whether candidates are industry connected—an important consideration in the tech community.
+
+The SQL statement to create a table is, appropriately, CREATE TABLE. It is followed by the specification for the table you want to create.
+
+
+CREATE TABLE candidates (
+  id INTEGER PRIMARY KEY,
+  first_name VARCHAR(30) NOT NULL,
+  last_name VARCHAR(30) NOT NULL,
+  industry_connected BOOLEAN NOT NULL
+);'
+
+We verified the database file we were working in using the .database SQLite command.
+ To see the tables of a database, type .schema into the SQLite CLI.
+ You should see something like the following image:
+
+ INSERT INTO candidates (first_name, last_name, industry_connected)
+VALUES ('Ronald', 'Firbank', 1);
+to load data
+
+.headers on
+.mode column
+SELECT * FROM candidates;
+The .mode column command formats the table in columns for a more legible display.
+
+Now suppose we wish to retrieve only specific column values from the table, like just the first_name and last_name. 
+SELECT first_name, last_name FROM candidates;
+
+Suppose next that we want to find, by first name, all the candidates who are industry_connected.
+ The WHERE clause enables us to conditionally filter through the data in the table.
+ Let's illustrate this point by typing the following SQL statement:
+
+SELECT first_name, industry_connected
+FROM candidates
+WHERE industry_connected = 1;
+
+SELECT first_name, last_name, industry_connected
+FROM candidates
+WHERE id = 5;
+
+It would be nice if we could store these SQL statements and then share the files.
+In this step, we'll do just that. We'll create a file for table creation called schema.sql and a file for data insertion called seeds.sql.
+ We'll use these files to create and populate the candidates table.
+
+ The < is called the input redirect. This will override the default standard input, which is the keyboard,
+  and allows the input to come from a file instead. This is not a feature of SQLite but a feature of the shell running in your terminal. 
+ It's like loading a bunch of pretyped commands into sqlite3!
+
+ Next we'll follow the same process, but with the seeds.sql file to populate the candidates table with data.
+
+ It is also common to need to change the data for a particular row. 
+ Perhaps a name was misspelled or a candidate who was previously lacking an industry connection has one now. 
+ To handle this type of change, we can use an UPDATE statement. 
+ In the next step, let's assume that the candidate Piers Gaveston has acquired a new industry connection and wishes to update his info.
+
+ UPDATE candidates
+SET industry_connected = 1
+WHERE id = 3;
+
+DELETE FROM candidates
+WHERE first_name = "Montague";
+
+.shell cls clears commands
