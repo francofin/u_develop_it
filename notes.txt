@@ -80,3 +80,10 @@ DELETE FROM candidates
 WHERE first_name = "Montague";
 
 .shell cls clears commands
+
+sqlite3 db/election.db < db/seeds.sql copy from one sql file to another database file
+
+Let's also include the jest package so that we can test in the development phase. 
+Let's place this package in devDependencies so that it's not included in the production environment. Use the following command for that:
+
+npm install jest --save-dev
