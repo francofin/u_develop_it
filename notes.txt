@@ -87,3 +87,45 @@ Let's also include the jest package so that we can test in the development phase
 Let's place this package in devDependencies so that it's not included in the production environment. Use the following command for that:
 
 npm install jest --save-dev
+
+This statement sets the execution mode to verbose to produce messages in the terminal regarding the state of the runtime.
+ This feature can help explain what the application is doing, specifically SQLite.
+
+ Now let's add the code that will connect the application to the SQLite database. 
+ Add the following expression under the Express.js middleware section in server.js, directly following app.use(express.json());:
+
+// Connect to database
+const db = new sqlite3.Database('./db/election.db', err => {
+  if (err) {
+    return console.error(err.message);
+  }
+
+  console.log('Connected to the election database.');
+});
+
+To ensure that the Express.js server doesn't start before the connection to the database has been established, 
+let's wrap the Express.js server connection located at the bottom of the server.js file in an event handler, as shown here:
+
+// Start server after DB connection
+db.on('open', () => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+});
+
+
+The method run() will execute an SQL query but won't retrieve any result data.
+
+The question mark (?) denotes a placeholder, making this a prepared statement.
+ Prepared statements can have placeholders that can be filled in dynamically with real values at runtime.
+
+ An additional param argument can provide values for prepared statement placeholders. 
+ Here, we're hardcoding 1 temporarily to demonstrate how prepared statements work. 
+ If we need additional placeholders, the param argument can be an array that holds multiple values.
+
+ We'll keep the this.changes value to verify whether the SQL query made changes to the candidates table.
+
+ This is why we received the error SQLITE CONSTRAINT. 
+ This is the PRIMARY KEY constraint at work, protecting the table from duplicate ids.
+
+
