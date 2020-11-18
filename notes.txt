@@ -128,4 +128,48 @@ The question mark (?) denotes a placeholder, making this a prepared statement.
  This is why we received the error SQLITE CONSTRAINT. 
  This is the PRIMARY KEY constraint at work, protecting the table from duplicate ids.
 
+This is known as a foreign key. A foreign key is a field in one table that references the primary key of another table. 
+In this case, Ronald Firbank's row in candidates would include a field with the number 1,
+ but we'd know that that refers to a row in the parties table with the same id value. 
+ Take a look at the following image to better understand the relationship:
+
+
+Enter the ALTER TABLE statement. This statement allows you to add a new field, delete an existing field, or modify a field.
+
+We've added a new line to the table called a constraint. 
+This allows us to flag the party_id field as an official foreign key and tells SQL which table and field it references. 
+In this case, it references the id field in the parties table.
+ This ensures that no id can be inserted into the candidates table if it doesn't also exist in the parties table. 
+SQLite will return an error for any operation that would violate a constraint.
+
+CREATE TABLE candidates (
+  id INTEGER PRIMARY KEY,
+  first_name VARCHAR(30) NOT NULL,
+  last_name VARCHAR(30) NOT NULL,
+  industry_connected BOOLEAN NOT NULL,
+  party_id INTEGER UNSIGNED,
+  CONSTRAINT fk_party FOREIGN KEY (party_id) REFERENCES parties(id) ON DELETE SET NULL
+);
+
+we added ON DELETE SET NULL to tell SQL to set a candidate's party_id field to NULL if the corresponding row in parties is ever deleted.
+A word of warning, though: The SQLite command line does not enable foreign key constraints by default.
+ You'll need to turn this on with the statement PRAGMA foreign_keys = ON every time you restart SQLite.
+ (Don't worry, the sqlite3 npm package will enable this for us.)
+
+ When added to a SELECT statement, a JOIN can merge two or more tables together, filling in the foreign keys with the actual data.
+
+SELECT * FROM candidates
+LEFT JOIN parties ON candidates.party_id = parties.id;
+We can use SQL's JOIN statement to do this for us. When added to a SELECT statement,
+ a JOIN can merge two or more tables together, filling in the foreign keys with the actual data.
+
+There are a few different ways JOIN statements can be used. 
+You can retrieve only the rows that have matching id's from both tables, 
+all of the rows from one table and only the matching data from another, etc. 
+
+
+ SELECT candidates.*, parties.name AS party_name
+FROM candidates
+LEFT JOIN parties ON candidates.party_id = parties.id;
+The AS keyword lets you define an alias for your data, which is particularly useful when joining tables that might have overlapping field names.
 
