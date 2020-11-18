@@ -136,6 +136,8 @@ In this case, Ronald Firbank's row in candidates would include a field with the 
 
 Enter the ALTER TABLE statement. This statement allows you to add a new field, delete an existing field, or modify a field.
 
+ALTER TABLE candidates ADD COLUMN party_id INTEGER UNSIGNED;
+
 We've added a new line to the table called a constraint. 
 This allows us to flag the party_id field as an official foreign key and tells SQL which table and field it references. 
 In this case, it references the id field in the parties table.
