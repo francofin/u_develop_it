@@ -177,3 +177,23 @@ The AS keyword lets you define an alias for your data, which is particularly use
 
 What request type would be appropriate for updating data? We've established that GET is for reading, POST for creating, and DELETE for deleting.
  None of those make sense for updating, but there is a fourth request type we can use: the PUT request.
+
+ The front-end team wanted the data returned in alphabetical order by last name. We could use JavaScript and the Array.prototype.sort() 
+ method before sending the response back, but why do that when SQL has sort options built in?
+
+ In SQL, rows can be sorted on retrieval simply by including an ORDER BY clause. If you want to sort the data in descending order 
+ (i.e., starting at Z instead of A), you can add a DESC keyword (e.g., ORDER BY last_name DESC).
+
+ -- get all voters who do not have a last name of Cooper or Jarman
+SELECT * FROM voters WHERE last_name != 'Cooper' AND last_name != 'Jarman';
+
+-- get all voters who have a .edu email address
+SELECT * FROM voters WHERE email LIKE '%.edu';
+
+-- get only the last created voter
+SELECT * FROM voters ORDER BY created_at DESC LIMIT 1;
+
+post request take body in the arguments
+
+The ? prepared statements will protect us from malicious data, but we should also do our best to prevent blank records from being created. 
+In the same POST route, add the following code right before the sql variable declaration:
