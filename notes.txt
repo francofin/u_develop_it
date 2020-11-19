@@ -128,4 +128,112 @@ The question mark (?) denotes a placeholder, making this a prepared statement.
  This is why we received the error SQLITE CONSTRAINT. 
  This is the PRIMARY KEY constraint at work, protecting the table from duplicate ids.
 
+This is known as a foreign key. A foreign key is a field in one table that references the primary key of another table. 
+In this case, Ronald Firbank's row in candidates would include a field with the number 1,
+ but we'd know that that refers to a row in the parties table with the same id value. 
+ Take a look at the following image to better understand the relationship:
 
+
+Enter the ALTER TABLE statement. This statement allows you to add a new field, delete an existing field, or modify a field.
+
+ALTER TABLE candidates ADD COLUMN party_id INTEGER UNSIGNED;
+
+We've added a new line to the table called a constraint. 
+This allows us to flag the party_id field as an official foreign key and tells SQL which table and field it references. 
+In this case, it references the id field in the parties table.
+ This ensures that no id can be inserted into the candidates table if it doesn't also exist in the parties table. 
+SQLite will return an error for any operation that would violate a constraint.
+
+CREATE TABLE candidates (
+  id INTEGER PRIMARY KEY,
+  first_name VARCHAR(30) NOT NULL,
+  last_name VARCHAR(30) NOT NULL,
+  industry_connected BOOLEAN NOT NULL,
+  party_id INTEGER UNSIGNED,
+  CONSTRAINT fk_party FOREIGN KEY (party_id) REFERENCES parties(id) ON DELETE SET NULL
+);
+
+we added ON DELETE SET NULL to tell SQL to set a candidate's party_id field to NULL if the corresponding row in parties is ever deleted.
+A word of warning, though: The SQLite command line does not enable foreign key constraints by default.
+ You'll need to turn this on with the statement PRAGMA foreign_keys = ON every time you restart SQLite.
+ (Don't worry, the sqlite3 npm package will enable this for us.)
+
+ When added to a SELECT statement, a JOIN can merge two or more tables together, filling in the foreign keys with the actual data.
+
+SELECT * FROM candidates
+LEFT JOIN parties ON candidates.party_id = parties.id;
+We can use SQL's JOIN statement to do this for us. When added to a SELECT statement,
+ a JOIN can merge two or more tables together, filling in the foreign keys with the actual data.
+
+There are a few different ways JOIN statements can be used. 
+You can retrieve only the rows that have matching id's from both tables, 
+all of the rows from one table and only the matching data from another, etc. 
+
+
+ SELECT candidates.*, parties.name AS party_name
+FROM candidates
+LEFT JOIN parties ON candidates.party_id = parties.id;
+The AS keyword lets you define an alias for your data, which is particularly useful when joining tables that might have overlapping field names.
+
+What request type would be appropriate for updating data? We've established that GET is for reading, POST for creating, and DELETE for deleting.
+ None of those make sense for updating, but there is a fourth request type we can use: the PUT request.
+
+ The front-end team wanted the data returned in alphabetical order by last name. We could use JavaScript and the Array.prototype.sort() 
+ method before sending the response back, but why do that when SQL has sort options built in?
+
+ In SQL, rows can be sorted on retrieval simply by including an ORDER BY clause. If you want to sort the data in descending order 
+ (i.e., starting at Z instead of A), you can add a DESC keyword (e.g., ORDER BY last_name DESC).
+
+ -- get all voters who do not have a last name of Cooper or Jarman
+SELECT * FROM voters WHERE last_name != 'Cooper' AND last_name != 'Jarman';
+
+-- get all voters who have a .edu email address
+SELECT * FROM voters WHERE email LIKE '%.edu';
+
+-- get only the last created voter
+SELECT * FROM voters ORDER BY created_at DESC LIMIT 1;
+
+post request take body in the arguments
+
+The ? prepared statements will protect us from malicious data, but we should also do our best to prevent blank records from being created. 
+In the same POST route, add the following code right before the sql variable declaration:
+
+CREATE TABLE votes (
+  id INTEGER PRIMARY KEY,
+  voter_id INTEGER UNSIGNED NOT NULL,
+  candidate_id INTEGER UNSIGNED NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT uc_voter UNIQUE (voter_id),
+  CONSTRAINT fk_voter FOREIGN KEY (voter_id) REFERENCES voters(id) ON DELETE CASCADE,
+  CONSTRAINT fk_candidate FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
+);
+
+
+The first constraint, uc_voter, signifies that the values inserted into the voter_id field must be unique.
+ For example, whoever has a voter_id of 1 can only appear in this table once.
+
+ With ON DELETE CASCADE, deleting the reference key will also delete the entire row from this table.
+
+ multiple inserts
+ INSERT INTO votes (voter_id, candidate_id) 
+VALUES(3,1), (4,2), (5,2), (6,2), (7,2), (8,3), (9,3);
+
+count query
+SELECT COUNT(candidate_id) FROM votes;
+
+Other useful aggregate functions in SQL include:
+
+AVG() to return the average value within a group
+
+SUM() to add up all of the values in a group
+
+MIN() to return the minimum value of a group
+
+GROUP BY can consolidate several rows of data, grouping by a shared value (e.g., candidate_id). 
+The nice thing about GROUP BY is that you can then run an aggregate function to retrieve an average, sum, or minimum value from the group.
+
+SELECT candidates.*, parties.name AS party_name, COUNT(candidate_id) AS count
+FROM votes
+LEFT JOIN candidates ON votes.candidate_id = candidates.id
+LEFT JOIN parties ON candidates.party_id = parties.id
+GROUP BY candidate_id ORDER BY count DESC;
